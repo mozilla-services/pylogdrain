@@ -34,7 +34,7 @@ LOGLINES = [
             ' - at=info method=GET path="/favicon.ico" host=tester request_'
             'id=189b83b2-e440-4d09-a760-5940f26740ab fwd="256.0.0.10" dyno='
             "web.1 connect=1ms service=1ms status=404 bytes=146 protocol=https\n"
-            "154 <190>1 2018-08-03T22:38:42.975461+00:00 host app web.1 - ["
+            "155 <190>1 2018-08-03T22:38:42.975461+00:00 host app web.1 - ["
             "GIN] 2018/08/03 - 22:38:42 | 200 |     170.221µs |  256.0.0.10"
             " | GET      /static/lang-logo.png\n"
             "146 <190>1 2018-08-03T22:38:43.087424+00:00 host app web.1 - ["
