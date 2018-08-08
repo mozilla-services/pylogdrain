@@ -48,7 +48,12 @@ LOGLINES = [
 
 def test_parse():
     parser = Parser()
-    logline = '<158>1 2018-08-03T22:38:42.839569+00:00 host heroku router - at=info method=GET path="/favicon.ico" host=tester request_id=189b83b2-e440-4d09-a760-555555555555 fwd="256.111.155.10" dyno=web.1 connect=1ms service=1ms status=404 bytes=146 protocol=https'
+    logline = (
+        '<158>1 2018-08-03T22:38:42.839569+00:00 host heroku router - at=info'
+        ' method=GET path="/favicon.ico" host=tester request_id=189b83b2-e440'
+        '-4d09-a760-555555555555 fwd="256.111.155.10" dyno=web.1 connect=1ms '
+        'service=1ms status=404 bytes=146 protocol=https'
+    )
     results = parser.parse(logline)
 
     assert results["priority"] == 158

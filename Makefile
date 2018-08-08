@@ -30,7 +30,7 @@ package:
 		python:3.6 \
 		/bin/bash -c 'apt-get update && apt-get install -y zip && cd /pylogdrain && make docker_build'
 
-test: venv
+test: check_venv
 	pytest tests/test_*.py
 
 venv:

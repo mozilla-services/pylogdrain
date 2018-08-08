@@ -45,6 +45,12 @@ The number of records in a batched put to the Kinesis stream.
 
 By default, `KINESIS_BATCH_SIZE` is set to `500` (which is the max allowed).
 
+#### LOGLEVEL (optional)
+
+Log level to use, where the options are "DEBUG", "INFO", or "WARN".
+
+By default, `LOGLEVEL` is set to "INFO".
+
 ## References
 
 The parsing code and structure of this project is based off of this tutorial:
