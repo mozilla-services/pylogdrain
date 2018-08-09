@@ -8,9 +8,15 @@ bcrypt hashed. After authenticating a request, it will send the logs to a Kinesi
 
 Additionally, this lambda function requires an API Gateway in front of it.
 
+## Lambda Packaging
+
+`make package` can be used to package the function in a zip file. A docker container is
+temporarily used to generate the Linux executable and archive it in the zip.
+
 ## Deployment
 
-TODO
+An example CloudFormation template exists in the [cf](./cf) directory. This will
+create everything needed for the lambda function to work through an api gateway.
 
 #### Auth JSON document
 
