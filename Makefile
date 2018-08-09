@@ -12,7 +12,7 @@ build:
 	(cd ${VIRTUAL_ENV}/lib/python3.6/site-packages && zip -r9 ${VIRTUAL_ENV}/../pylogdrain.zip .)
 	zip -g pylogdrain.zip *.py
 
-docker_build: install build
+docker_build: clean install build
 local_build: clean install check_venv build
 
 clean:
@@ -39,9 +39,13 @@ venv:
 .PHONY:
 	all \
 	black \
+	build \
 	check_venv \
 	clean \
 	dev_install \
+	docker_build \
 	install \
+	local_build \
+	package \
 	test \
 	venv
