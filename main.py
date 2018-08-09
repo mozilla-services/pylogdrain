@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import datetime
 
 import boto3
 
@@ -57,11 +56,6 @@ def handle_lambda_proxy_event(event):
     return ""
 
 
-def serializer(o):
-    if type(o) is datetime.date or type(o) is datetime.datetime:
-        return o.isoformat()
-
-
 def put_loglines_to_kinesis(loglines):
     kinesisClient = boto3.client("kinesis", region_name=config["KINESIS_REGION"])
     records = []
@@ -75,7 +69,7 @@ def put_loglines_to_kinesis(loglines):
 
     for line in loglines:
         records.append(
-            {"Data": json.dumps(line, default=serializer), "PartitionKey": "key"}
+            {"Data": line, "PartitionKey": "key"}
         )
         if len(records) and len(records) % config["KINESIS_BATCH_SIZE"] == 0:
             put_records(kinesisClient, records)
