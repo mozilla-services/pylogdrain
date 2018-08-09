@@ -20,9 +20,24 @@ class BasicAuthDecodeError(Exception):
 
 class BasicAuthHandler(object):
     def __init__(self, config):
-        self.dynamo_region = config["DYNAMODB_REGION"]
-        self.dynamo_client = boto3.client("dynamodb", region_name=self.dynamo_region)
-        self.dynamo_table = config["DYNAMODB_TABLE_NAME"]
+        self.s3_client = boto3.client("s3", region_name=config["AUTH_S3_REGION"])
+        self.s3_bucket = config["AUTH_S3_BUCKET"]
+        self.s3_key = config["AUTH_S3_KEY"]
+
+    def get_auth_json_from_s3(self):
+        resp = self.s3_client.get_object(Bucket=self.s3_bucket, Key=self.s3_key)
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug("Resp from S3: %s", resp)
+        return json.loads(resp['Body'].read())
+
+    def get_password(self, username):
+        auth_json = self.get_auth_json_from_s3()
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug("Iterating through %d credentials", len(auth_json))
+        for creds in auth_json:
+            if creds['username'] == username:
+                return creds['password']
+        return None
 
     def check_header(self, basicauth_header):
         """
@@ -36,16 +51,11 @@ class BasicAuthHandler(object):
         except BasicAuthDecodeError:
             return False
 
-        resp = self.dynamo_client.get_item(
-            TableName=self.dynamo_table, Key={"username": {"S": username}}
-        )
+        stored_password = self.get_password(username)
+        if stored_password is None:
+            return False
 
-        if log.isEnabledFor(logging.DEBUG):
-            log.debug("Resp from Dynamo: " + json.dumps(resp))
-
-        if "Item" in resp and checkpw(
-            password.encode("utf-8"), resp["Item"]["password"]["S"].encode("utf-8")
-        ):
+        if checkpw(password.encode("utf-8"), stored_password.encode("utf-8")):
             return True
 
         return False

@@ -3,9 +3,8 @@
 This lambda function ingests syslog-over-https with basic auth, specifically targetting Heroku
 logdrains.
 
-It uses a DynamoDB table to store username/password combinations, with the password being
-bcrypt hashed. After validating that a request has a working use of credentials, it will
-send the logs to a Kinesis stream, one log line per record.
+It uses a JSON document stored in S3 to store username/password combinations, with the password being
+bcrypt hashed. After authenticating a request, it will send the logs to a Kinesis stream, one log line per record.
 
 Additionally, this lambda function requires an API Gateway in front of it.
 
@@ -13,19 +12,33 @@ Additionally, this lambda function requires an API Gateway in front of it.
 
 TODO
 
+#### Auth JSON document
+
+##### S3 Configuration
+
+As you will see in the cloudformation examples, it is suggested that you turn on
+[Versioning](https://docs.aws.amazon.com/AmazonS3/latest/dev/Versioning.html) on the S3
+bucket you use to store the authentication document.
+
 ### Environment Variables
 
-#### DYNAMODB_TABLE_NAME (required)
+#### AUTH_S3_BUCKET (required)
 
-The name of the DynamoDB table that contains authentication records.
+The S3 bucket that holds the authentication json document.
 
-Example: `DYNAMODB_TABLE_NAME="pylogdrain-auth"`
+Example: `AUTH_S3_BUCKET='pylogdrain-auth-storage'`
 
-#### DYNAMODB_REGION (required)
+#### AUTH_S3 (required)
 
-The region that the DynamoDB table lives in.
+The key to the authentication json document stored in the `AUTH_S3_BUCKET` bucket.
 
-Example: `DYNAMODB_REGION="us-west-2"`
+Example: `AUTH_S3_KEY='auth.json'`
+
+#### AUTH_S3_REGION (required)
+
+The region that the S3 bucket is in.
+
+Example: `AUTH_S3_REGION="us-west-2"`
 
 #### KINESIS_STREAM_NAME (required)
 
@@ -50,8 +63,3 @@ By default, `KINESIS_BATCH_SIZE` is set to `500` (which is the max allowed).
 Log level to use, where the options are "DEBUG", "INFO", or "WARN".
 
 By default, `LOGLEVEL` is set to "INFO".
-
-## References
-
-The parsing code and structure of this project is based off of this tutorial:
-https://spiegelmock.com/2017/10/26/heroku-logging-to-aws-lambda/
