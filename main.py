@@ -68,9 +68,7 @@ def put_loglines_to_kinesis(loglines):
         )
 
     for line in loglines:
-        records.append(
-            {"Data": line, "PartitionKey": "key"}
-        )
+        records.append({"Data": line, "PartitionKey": "key"})
         if len(records) and len(records) % config["KINESIS_BATCH_SIZE"] == 0:
             put_records(kinesisClient, records)
             records = []

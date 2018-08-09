@@ -28,15 +28,15 @@ class BasicAuthHandler(object):
         resp = self.s3_client.get_object(Bucket=self.s3_bucket, Key=self.s3_key)
         if log.isEnabledFor(logging.DEBUG):
             log.debug("Resp from S3: %s", resp)
-        return json.loads(resp['Body'].read())
+        return json.loads(resp["Body"].read())
 
     def get_password(self, username):
         auth_json = self.get_auth_json_from_s3()
         if log.isEnabledFor(logging.DEBUG):
             log.debug("Iterating through %d credentials", len(auth_json))
         for creds in auth_json:
-            if creds['username'] == username:
-                return creds['password']
+            if creds["username"] == username:
+                return creds["password"]
         return None
 
     def check_header(self, basicauth_header):
@@ -104,10 +104,7 @@ def check_auth(headers, config):
 
     ba_handler = BasicAuthHandler(config)
     if not ba_handler.check_header(headers["Authorization"]):
-        msg = (
-            "username/password combo in 'Authorization' header was not found in DynamoDB table %s, exiting"
-            % config["DYNAMODB_TABLE_NAME"]
-        )
+        msg = "username/password combo in 'Authorization' header was not found in auth document, exiting"
         log.error(msg)
         raise AuthenticationError(msg)
 

@@ -50,4 +50,4 @@ def test_parse_rfc6587():
     for line in LOGLINES:
         results = parse_rfc6587(line[0])
         assert len(results) == line[1]["len"]
-        assert results[-1].endswith(line[1]['endswith'])
+        assert results[-1].endswith(line[1]["endswith"])
