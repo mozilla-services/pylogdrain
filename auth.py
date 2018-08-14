@@ -42,7 +42,7 @@ class BasicAuthHandler(object):
     def check_header(self, basicauth_header):
         """
         Checks Basic Auth header value against username/password combos
-        in dynamodb.
+        in the auth JSON document pulled from s3.
 
         Returns True if it finds a match, else it returns False.
         """
