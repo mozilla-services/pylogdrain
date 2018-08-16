@@ -1,0 +1,108 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'pylogdrain dev template'
+Parameters:
+  LambdaBucket:
+    Description: 'S3 bucket with Lambda code'
+    Type: String
+  LambdaKey:
+    Description: 'S3 bucket key with Lambda code'
+    Type: String
+Resources:
+  PylogdrainRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - 's3:GetObject'
+                Resource: "arn:aws:s3:::pylogdrain-auth-dev/*"
+                Effect: 'Allow'
+          PolicyName: Pylogdrain-GetAuthObject
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - 'kinesis:*'
+                Resource: !Sub ${KinesisStream.Arn}
+                Effect: 'Allow'
+          PolicyName: Pylogdrain-Kinesis
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: 'arn:aws:logs:*:*:*'
+                Effect: 'Allow'
+          PolicyName: Pylogdrain-Logs
+
+  PylogdrainApiGateway:
+    Type: 'AWS::ApiGateway::RestApi'
+    Properties:
+      Name: 'pylogdrain-dev'
+
+  PylogdrainApiEndpoint:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      AuthorizationType: "NONE"
+      HttpMethod: "POST"
+      ResourceId: !Sub ${PylogdrainApiGateway.RootResourceId}
+      RestApiId: !Ref PylogdrainApiGateway
+      Integration:
+        IntegrationHttpMethod: "POST"
+        Type: "AWS_PROXY"
+        Uri: !Join ['', ["arn:aws:apigateway:", !Ref 'AWS::Region', ":lambda:path/2015-03-31/functions/", !GetAtt PylogdrainFunction.Arn, "/invocations"]]
+
+  PylogdrainApiDevDeployment:
+    Type: 'AWS::ApiGateway::Deployment'
+    DependsOn: PylogdrainApiEndpoint
+    Properties:
+      RestApiId: !Ref PylogdrainApiGateway
+      StageName: 'dev'
+
+  PylogdrainApiLambdaPermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Sub ${PylogdrainFunction.Arn}
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Join ['', ["arn:aws:execute-api:", !Ref 'AWS::Region', ':', !Ref 'AWS::AccountId', ':', !Ref PylogdrainApiGateway, '/*/*/*']]
+
+  AuthS3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: 'pylogdrain-auth-dev'
+
+  KinesisStream:
+    Type: 'AWS::Kinesis::Stream'
+    Properties:
+      Name: 'pylogdrain-dev'
+      ShardCount: 1
+
+  PylogdrainFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Description: 'pylogdrain lambda func'
+      FunctionName: pylogdrain
+      Handler: main.lambda_handler
+      Role: !Sub ${PylogdrainRole.Arn}
+      Runtime: python3.6
+      Timeout: 60
+      Code:
+        S3Key: !Ref LambdaKey
+        S3Bucket: !Ref LambdaBucket
+      Environment:
+        Variables:
+          AUTH_S3_BUCKET: !Ref AuthS3Bucket
+          AUTH_S3_KEY: "auth.json"
+          AUTH_S3_REGION: !Ref AWS::Region
+          KINESIS_REGION: !Ref AWS::Region
+          KINESIS_STREAM_NAME: !Ref KinesisStream
+          LOGGING: 'DEBUG' # Set debug logging for dev Lambda deployment
